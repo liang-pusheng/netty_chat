@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天页面</title>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
+</head>
+<body>
+<ul id="onlineUser"></ul>
+<form onsubmit="return false;">
+    <h3>WebSocket 聊天室：</h3>
+    <textarea id="responseText" style="width: 500px; height: 300px;"></textarea>
+    <br>
+    <input type="text" id="content" name="message" style="width: 300px" value="">
+    <input type="button" value="发送消息" onclick="sendAndClear(this.form.message.value)">
+    <input type="button" onclick="javascript:document.getElementById('responseText').value=''" value="清空聊天记录">
+</form>
+</body>
+<script type="text/javascript">
+    var socket;
+    if (!window.WebSocket) {
+        window.WebSocket = window.MozWebSocket;
+    }
+    if (window.WebSocket) {
+        socket = new WebSocket("ws://localhost:8080/ws");
+        socket.onopen = function (event) {
+            $("#responseText").text("连接开启!");
+            socket.send("{\"type\": \"online\"}");
+        };
+        socket.onmessage = function(event) {
+            var $response = $("#responseText");
+            try {
+                var data = JSON.parse(event.data);
+                var type = data.type;
+                if (type === "online") {
+                    var $onlineUser = $("#onlineUser");
+                    $onlineUser.html("");
+                    for (var i = 0; i < data.data.length; i++) {
+                        $onlineUser.append("li").text(data.data[i]);
+                    }
+                    getId();
+                } else {
+                    $response.text($response.text() + "\n" + data.data);
+                }
+            } catch(e) {
+                console.log(e);
+            }
+        };
+        socket.onclose = function(event) {
+            $("#responseText").text("连接关闭!");
+            socket.send("{\"type\": \"online\"}");
+        };
+    } else {
+        alert("你的浏览器不支持WebSocket!");
+    }
+
+    function send(message) {
+        if  (!window.WebSocket) {
+            return;
+        }
+        if (socket.readyState == WebSocket.OPEN) {
+            if (message == "") {
+                alert("发送的内容不能为空!");
+            } else {
+                var param = new Object();
+                param.id = window.id;
+                param.type = "chat";
+                param.data = message;
+                var jsonString = JSON.stringify(param);
+                socket.send(jsonString);
+            }
+        }
+    }
+
+    //发送信息并将输入框内的文字清空
+    function sendAndClear(message) {
+        send(message);
+        $("#id").text("");
+    }
+
+    //获取channel id并绑定点击事件
+    function getId() {
+        $("li").click(function(){
+            var li = $(this).text();
+            window.id = id;
+        });
+    }
+</script>
+</html>

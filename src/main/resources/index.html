@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Chat</title>
+</head>
+<body>
+<script type="text/javascript">
+    var socket;
+    if (!window.WebSocket) {
+        window.WebSocket = window.MozWebSocket;
+    }
+    if (window.WebSocket) {
+        //接收服务器发送的消息
+        socket = new WebSocket("ws://localhost:8080/ws");
+        socket.onopen = function (event) {
+            var ta = document.getElementById("responseText");
+            ta.value = "连接开启";
+            socket.send("{\"type\": \"online\"}");
+        };
+        socket.onmessage = function (event) {
+            var ta = document.getElementById("responseText");
+            try {
+                var data = JSON.parse(event.data);
+                console.log(event.data);
+                var type = data.type;
+                console.log(type);
+                console.log(data.data);
+                if (type === "online") {
+                    var onlineUser = document.getElementById("onlineUser");
+                    onlineUser.innerHTML = "";
+                    //添加新的address
+                    for (var i = 0; i < data.data.length; i++) {
+                        var li = document.createElement("li");
+                        li.innerHTML = data.data[i];
+                        onlineUser.appendChild(li);
+                    }
+                    getId();
+                } else {
+                    var msg = data.data;
+                    ta.value = ta.value + "\n" + msg;
+                }
+
+            } catch(e){
+                console.log(e);
+            }
+
+        };
+        socket.onclose = function (event) {
+            var ta = document.getElementById("responseText");
+            ta.value = "\n连接关闭";
+            socket.send("{\"type\": \"online\"}");
+        };
+    } else {
+        alert("您的浏览器不支持WebSocket!");
+    }
+    //向服务器发送消息
+    function send(message) {
+        if (!window.WebSocket) {
+            return;
+        }
+        if (socket.readyState == WebSocket.OPEN) {
+            if (message == "") {
+                alert("发送内容不能为空!");
+            } else {
+                var id = window.id;
+                var param = new Object();
+                param.id = id;
+                param.type = "chat";
+                param.data = message;
+                var stringify = JSON.stringify(param);
+                socket.send(stringify);
+            }
+
+        } else {
+            alert("连接还未开启!");
+        }
+    }
+    function sendAndClear(message) {
+        send(message);
+        var input = document.getElementById("content");
+        input.value = "";
+    }
+
+    //点击获取id
+    function getId() {
+        console.log(1);
+        var list = document.getElementById("onlineUser").getElementsByTagName("li");
+        for (var i = 0; i < list.length; i++) {
+            list[i].onclick = function () {
+                var value = this.innerHTML;
+                var id = value.substring(value.length - 8, value.length);
+                console.log("id" + id);
+                window.id = id;
+            }
+        }
+    }
+</script>
+<ul id="onlineUser"></ul>
+<form onsubmit="return false;">
+    <h3>WebSocket 聊天室：</h3>
+    <textarea id="responseText" style="width: 500px; height: 300px;"></textarea>
+    <br>
+    <input type="text" id="content" name="message" style="width: 300px" value="">
+    <input type="button" value="发送消息" onclick="sendAndClear(this.form.message.value)">
+    <input type="button" onclick="javascript:document.getElementById('responseText').value=''" value="清空聊天记录">
+</form>
+<br>
+<br>
+</body>
+</html>
