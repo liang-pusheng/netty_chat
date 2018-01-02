@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 定义日志文件的存储路径及编码格式 -->
+    <property name="LOG_HOME" value="/com/breeze/chat/logs"/>
+    <property name="FILE_NAME" value="info"/>
+    <property name="ENCODING" value="UTF-8"/>
+
+    <!-- 控制台输出 。appender标签有name和class两个必填的属性。 class是指具体的实现类-->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 日志输出编码,负责将日志信息转成字节数组，再将字节数组写入到输出流 -->
+        <encoder>
+            <!-- 输出格式：%d表示日期，%thread表示线程名，%-5level表示显示日志级别的5个字符宽度，%msg日志信息，%n换行 -->
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%-5level] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 按天生成日志文件，保存在磁盘中 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 日志文件保存路径及文件名 -->
+            <fileNamePattern>${LOG_HOME}/${FILE_NAME}_%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 日志文件保存的时间 -->
+            <maxHistroy>30</maxHistroy>
+        </rollingPolicy>
+        <!-- 输出格式：%d表示日期，%thread表示线程名，%-5level表示显示日志级别的5个字符宽度，%msg日志信息，%n换行 -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] [%-5level] - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!--
+        logback配置文件的基本标签格式
+        <property name="" value=""/>定义的是属性，给下面的标签引用
+        <appender name="" class="">这个appender用于控制台的输出
+            <encoder>
+                <pattern></pattern>
+            </encoder>
+        </appender>
+        <appender name="" class="">这个appender用于生成日志文件并保存到磁盘中
+            <rollingPolicy>
+                <FileNamePattern></FileNamePattern>
+                <MaxHistroy></MaxHistroy>
+            </rollingPolicy>
+            <pattern></pattern>
+        </appender>
+        <root level="">
+            <appender-ref ref=""/>
+            <appender-ref ref=""/>
+        </root> -->
+</configuration>

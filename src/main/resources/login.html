@@ -23,65 +23,78 @@
     }
     if (window.WebSocket) {
         socket = new WebSocket("ws://localhost:8080/ws");
+
+        //开启连接
         socket.onopen = function (event) {
             $("#responseText").text("连接开启!");
-            socket.send("{\"type\": \"online\"}");
+            socket.send("{\"type\":\"online\"}");
         };
-        socket.onmessage = function(event) {
-            var $response = $("#responseText");
+
+        //接收信息
+        socket.onmessage = function (event) {
+            var response = $("#responseText");
             try {
-                var data = JSON.parse(event.data);
-                var type = data.type;
+                var newData = JSON.parse(event.data);
+                var type = newData.type;
                 if (type === "online") {
-                    var $onlineUser = $("#onlineUser");
-                    $onlineUser.html("");
-                    for (var i = 0; i < data.data.length; i++) {
-                        $onlineUser.append("li").text(data.data[i]);
+                    var onlineUser = $("#onlineUser");
+                    onlineUser.html("");
+                    for (var i = 0; i < newData.data.length; i++) {
+                        onlineUser.append("<li>" + newData.data[i] + "</li>");
                     }
-                    getId();
+                    getID();
                 } else {
-                    $response.text($response.text() + "\n" + data.data);
+                    response.text(response.text() + "\n" + newData.data);
                 }
-            } catch(e) {
+            } catch (e) {
                 console.log(e);
             }
         };
-        socket.onclose = function(event) {
-            $("#responseText").text("连接关闭!");
-            socket.send("{\"type\": \"online\"}");
+
+        //关闭连接
+        socket.onclose = function (event) {
+            $("#responseText").text("\n连接关闭!");
+            socket.send("{\"type\":\"online\"}");
         };
     } else {
-        alert("你的浏览器不支持WebSocket!");
+        alert("您的浏览器不支持WebSocket!");
     }
 
+    //向服务器发送消息
     function send(message) {
-        if  (!window.WebSocket) {
+        if (!window.WebSocket) {
             return;
         }
         if (socket.readyState == WebSocket.OPEN) {
             if (message == "") {
-                alert("发送的内容不能为空!");
+                alert("发送的信息不能为空");
             } else {
-                var param = new Object();
-                param.id = window.id;
-                param.type = "chat";
-                param.data = message;
+                var id = window.id;
+                var param = {
+                    id: id,
+                    type: "chat",
+                    data: message
+                }
                 var jsonString = JSON.stringify(param);
                 socket.send(jsonString);
             }
+        } else {
+            alert("连接还未开启");
         }
     }
 
-    //发送信息并将输入框内的文字清空
+    //发送并清空输入框的内容
     function sendAndClear(message) {
         send(message);
-        $("#id").text("");
+        $("#content").val("");
     }
 
-    //获取channel id并绑定点击事件
-    function getId() {
-        $("li").click(function(){
-            var li = $(this).text();
+    //获取用户的ID
+    function getID() {
+        var list = $("li");
+        list.click(function () {
+            var value = $(this).text();
+            var id = value.substring(value.length - 8, value.length);
             window.id = id;
         });
     }

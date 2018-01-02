@@ -1,5 +1,6 @@
 package breeze.chatroom.server;
 
+import breeze.chatroom.dbutil.DBUtil;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -13,11 +14,7 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.plaf.metal.MetalBorders;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.netty.handler.codec.http.HttpMethod.GET;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
@@ -87,6 +84,10 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
                     frame.getClass().getName()));
         }
 
+        //连接数据库
+        DBUtil.connectionDB("chat", "root", "root");
+        String sql = "insert into chat_info(from_name,to_name,content,time) values (?, ?, ?, ?)";
+
         //消息发送
         String message = ((TextWebSocketFrame) frame).text();
         Map<String, Object> result = new HashMap<String, Object>();
@@ -95,7 +96,8 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
         String value = jsonObject.getString("type");
         if ("online".equals(value)) {
             onlineUser();
-        } else if ("chat".equals(value)) {
+        }
+        if ("chat".equals(value)) {
             String msg = jsonObject.getString("data");
             String id = jsonObject.getString("id");
             Channel targetChannel = WebSocketServer.channelMap.get(id);
@@ -104,16 +106,22 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<Object> 
                 result.put("data", "我：" + msg);
                 incoming.writeAndFlush(new TextWebSocketFrame(jsonObject.toJSONString(result)));
                 result.put("data", "[" + incoming.remoteAddress() + "]：" + msg);
+                DBUtil.executeSql(sql, incoming.remoteAddress().toString(),
+                        targetChannel.remoteAddress().toString(), msg, new Date());
                 targetChannel.writeAndFlush(new TextWebSocketFrame(jsonObject.toJSONString(result)));
             } else {
                 for (Channel channel : WebSocketServer.channels) {
                     if (channel != incoming) {
                         result.put("type", "chat");
                         result.put("data", "[" + incoming.remoteAddress() + "]：" + msg);
+                        DBUtil.executeSql(sql, incoming.remoteAddress().toString(),
+                                channel.remoteAddress().toString(), msg, new Date());
                         channel.writeAndFlush(new TextWebSocketFrame(jsonObject.toJSONString(result)));
                     } else {
                         result.put("type", "chat");
                         result.put("data", "我：" + msg);
+                        DBUtil.executeSql(sql, channel.remoteAddress().toString(),
+                                incoming.remoteAddress().toString(), msg, new Date());
                         channel.writeAndFlush(new TextWebSocketFrame(jsonObject.toJSONString(result)));
                     }
                 }
