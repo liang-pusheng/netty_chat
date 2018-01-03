@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>在线咨询</title>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
+    <script type="text/javascript" src="chatroom.js"></script>
+    <link rel="stylesheet" href="chatroom.css"/>
+</head>
+<body>
+<div id="divMain">
+    <div class="divtop">
+        <div class="divL">
+            <h3>聊天窗口</h3>
+            <div class="divShow" id="divContent"></div>
+        </div>
+        <div class="divR">
+            <h3>在线用户</h3>
+            <div class="divShow" id="divOnLine">
+                <ul id="online"></ul>
+            </div>
+        </div>
+    </div>
+    <div class="divBot">
+        <table cellpadding="0" cellspacing="0">
+            <tr>
+                <td colspan="2" id="divFace" class="pb"></td>
+            </tr>
+            <tr>
+                <td>
+                    <textarea id="txtContent" cols="64" rows="3" class="txt"></textarea>
+                </td>
+                <td class="pl">
+                    <input id="Button1" type="button" value="发送" class="btn" onclick="send()"/>
+                    <input id="Button2" type="button" value="清空聊天记录" class="btn" onclick="clearContent()"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>
