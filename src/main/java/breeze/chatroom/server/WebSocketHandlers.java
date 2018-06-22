@@ -24,8 +24,6 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**
  * Created by Administrator on 2017/12/18.
- * <p>
- * ChannelHandlerContext主要的功能是管理通过同一个ChannelPipeline关联的ChannelHandler之间的交互
  */
 public class WebSocketHandlers extends SimpleChannelInboundHandler<Object> {
 
@@ -94,7 +92,6 @@ public class WebSocketHandlers extends SimpleChannelInboundHandler<Object> {
         sendMsg(frame, incoming);
     }
 
-    //1.数据库的学习 2.字表的设计 3.程序完善 4.继续前端知识的学习
     private void sendMsg(WebSocketFrame frame, Channel incoming) {
         //连接数据库
         DBUtil.connectDB("chat", "root", "root");
